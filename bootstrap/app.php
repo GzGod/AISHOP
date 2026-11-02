@@ -24,7 +24,7 @@ $connConfig = [
     'database' => env('DB_DATABASE', 'aishop'),
     'username' => env('DB_USERNAME', 'root'),
     'password' => env('DB_PASSWORD', ''),
-    'prefix'   => 'as_',
+    'prefix'   => '',
 ];
 if ($driver === 'pgsql') {
     $connConfig['charset'] = 'utf8';
