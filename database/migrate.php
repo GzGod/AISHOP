@@ -2,7 +2,8 @@
 declare(strict_types=1);
 // Auto-runs on container start; idempotent — safe to run multiple times.
 
-require dirname(__DIR__) . '/bootstrap/app.php';
+define('BASE_PATH', dirname(__DIR__));
+require BASE_PATH . '/bootstrap/app.php';
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Schema\Blueprint;
