@@ -1,6 +1,7 @@
 <?php
 /** @var \App\Models\Product $product */
 ob_start();
+require __DIR__.'/../partials/product_icon.php';
 $state = $product->stockState();
 $badgeClass = match($state) { 'in'=>'badge-stock','few'=>'badge-few',default=>'badge-sold' };
 $badgeLabel = match($state) { 'in'=>'有货','few'=>'库存紧张',default=>'售罄' };
@@ -28,7 +29,7 @@ $soldOut = $state === 'sold';
       <div class="flex items-start gap-4 mb-5">
         <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
              style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);">
-          <?php include __DIR__.'/../partials/product_icon.php'; ?>
+          <?php echo product_icon($product); ?>
         </div>
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-1">

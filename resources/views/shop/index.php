@@ -2,6 +2,7 @@
 /** @var \App\Models\Product[] $products */
 /** @var string $current */
 ob_start();
+require __DIR__.'/../partials/product_icon.php';
 $cats = ['all'=>'全部商品','chatgpt'=>'ChatGPT','claude'=>'Claude','grok'=>'Grok','midjourney'=>'Midjourney','other'=>'其他'];
 ?>
 
@@ -83,7 +84,7 @@ $cats = ['all'=>'全部商品','chatgpt'=>'ChatGPT','claude'=>'Claude','grok'=>'
         <div class="flex items-start justify-between gap-2">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);" aria-hidden="true">
-            <?php include __DIR__.'/../partials/product_icon.php'; ?>
+            <?php echo product_icon($p); ?>
           </div>
           <div class="flex flex-col items-end gap-1">
             <span class="text-xs font-semibold px-2 py-0.5 rounded-full <?= $badgeClass ?>"><?= $badgeLabel ?></span>
