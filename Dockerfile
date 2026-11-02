@@ -20,9 +20,9 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Nginx config
+# Nginx config template (uses $PORT at runtime)
 RUN echo 'server { \n\
-    listen 80; \n\
+    listen __PORT__; \n\
     root /var/www/html/public; \n\
     index index.php; \n\
     location / { try_files $uri $uri/ /index.php?$query_string; } \n\
@@ -37,7 +37,16 @@ RUN echo 'server { \n\
 # Storage permissions
 RUN mkdir -p storage/logs storage/app && chmod -R 777 storage
 
+# Startup script: run migrations, start php-fpm, then nginx on $PORT
+RUN echo '#!/bin/sh\n\
+set -e\n\
+php /var/www/html/database/migrate.php\n\
+php-fpm -D\n\
+PORT=${PORT:-80}\n\
+sed -i "s/__PORT__/$PORT/g" /etc/nginx/sites-available/default\n\
+exec nginx -g "daemon off;"\n\
+' > /start.sh && chmod +x /start.sh
+
 EXPOSE 80
 
-# Start: migrate → php-fpm → nginx
-CMD php database/migrate.php 2>&1 && php-fpm -D && nginx -g 'daemon off;'
+CMD ["/start.sh"]
