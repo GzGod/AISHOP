@@ -1,7 +1,13 @@
 FROM php:8.1-apache
 
-# Install required PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql
+# Install system deps + PHP extensions
+RUN apt-get update && apt-get install -y \
+    unzip \
+    libzip-dev \
+    libonig-dev \
+    curl \
+    && docker-php-ext-install pdo pdo_mysql zip mbstring \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /var/www/html
@@ -11,7 +17,7 @@ COPY . .
 
 # Install Composer and dependencies
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && composer install --no-dev --optimize-autoloader --no-interaction
+    && composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
 # Set Apache document root to public/
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
