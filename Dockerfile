@@ -35,4 +35,5 @@ RUN mkdir -p storage/logs storage/app \
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+# Auto-run migrations then start Apache
+CMD php database/migrate.php 2>&1 | tee /tmp/migrate.log || true && apache2-foreground
