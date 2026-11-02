@@ -5,8 +5,9 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     libonig-dev \
+    libpq-dev \
     curl \
-    && docker-php-ext-install pdo pdo_mysql zip mbstring \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip mbstring \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory

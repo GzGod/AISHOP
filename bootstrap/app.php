@@ -16,17 +16,25 @@ require BASE_PATH . '/bootstrap/helpers.php';
 
 // ── Database (Eloquent via Capsule) ──────────────────────────────────────
 $capsule = new Capsule;
-$capsule->addConnection([
-    'driver'    => 'mysql',
-    'host'      => env('DB_HOST', '127.0.0.1'),
-    'port'      => env('DB_PORT', '3306'),
-    'database'  => env('DB_DATABASE', 'aishop'),
-    'username'  => env('DB_USERNAME', 'root'),
-    'password'  => env('DB_PASSWORD', ''),
-    'charset'   => 'utf8mb4',
-    'collation' => 'utf8mb4_unicode_ci',
-    'prefix'    => 'as_',
-]);
+$driver = env('DB_CONNECTION', 'mysql');
+$connConfig = [
+    'driver'   => $driver,
+    'host'     => env('DB_HOST', '127.0.0.1'),
+    'port'     => env('DB_PORT', $driver === 'pgsql' ? '5432' : '3306'),
+    'database' => env('DB_DATABASE', 'aishop'),
+    'username' => env('DB_USERNAME', 'root'),
+    'password' => env('DB_PASSWORD', ''),
+    'prefix'   => 'as_',
+];
+if ($driver === 'pgsql') {
+    $connConfig['charset'] = 'utf8';
+    $connConfig['schema']  = 'public';
+    $connConfig['sslmode'] = 'prefer';
+} else {
+    $connConfig['charset']   = 'utf8mb4';
+    $connConfig['collation'] = 'utf8mb4_unicode_ci';
+}
+$capsule->addConnection($connConfig);
 $capsule->setAsGlobal();
 $capsule->bootEloquent();
 
