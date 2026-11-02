@@ -38,5 +38,7 @@ $capsule->addConnection($connConfig);
 $capsule->setAsGlobal();
 $capsule->bootEloquent();
 
-// ── Router ───────────────────────────────────────────────────────────────
-require BASE_PATH . '/routes/web.php';
+// ── Router (skip in CLI mode) ─────────────────────────────────────────────
+if (php_sapi_name() !== 'cli') {
+    require BASE_PATH . '/routes/web.php';
+}
