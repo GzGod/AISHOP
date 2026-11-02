@@ -1,7 +1,8 @@
-FROM php:8.1-apache
+FROM php:8.1-fpm
 
 # Install system deps + PHP extensions
 RUN apt-get update && apt-get install -y \
+    nginx \
     unzip \
     libzip-dev \
     libonig-dev \
@@ -10,31 +11,33 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip mbstring \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 WORKDIR /var/www/html
 
-# Copy project files
 COPY . .
 
-# Install Composer and dependencies
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Set Apache document root to public/
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
-    && sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/apache2.conf \
-    && a2enmod rewrite \
-    && a2dismod mpm_event mpm_worker 2>/dev/null; a2enmod mpm_prefork 2>/dev/null; true
+# Nginx config
+RUN echo 'server { \n\
+    listen 80; \n\
+    root /var/www/html/public; \n\
+    index index.php; \n\
+    location / { try_files $uri $uri/ /index.php?$query_string; } \n\
+    location ~ \.php$ { \n\
+        fastcgi_pass 127.0.0.1:9000; \n\
+        fastcgi_index index.php; \n\
+        include fastcgi_params; \n\
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n\
+    } \n\
+}' > /etc/nginx/sites-available/default
 
-# Allow .htaccess overrides
-RUN echo '<Directory /var/www/html/public>\n    AllowOverride All\n    Require all granted\n</Directory>' \
-    >> /etc/apache2/apache2.conf
-
-# Storage dir permissions
-RUN mkdir -p storage/logs storage/app \
-    && chmod -R 777 storage
+# Storage permissions
+RUN mkdir -p storage/logs storage/app && chmod -R 777 storage
 
 EXPOSE 80
 
-# Auto-run migrations then start Apache
-CMD php database/migrate.php 2>&1 | tee /tmp/migrate.log || true && apache2-foreground
+# Start: migrate → php-fpm → nginx
+CMD php database/migrate.php 2>&1 && php-fpm -D && nginx -g 'daemon off;'
